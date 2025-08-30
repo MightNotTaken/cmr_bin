@@ -20,7 +20,6 @@ void TouchController::loop() {
       lastX = ((buffer[0] & 0x0F) << 8) | buffer[1]; // P1_XH and P1_XL
       lastY = ((buffer[2] & 0x0F) << 8) | buffer[3]; // P1_YH and P1_YL
       touchAvailable = true;
-      Serial.printf("(%d, %d)\n", lastX, lastY);
     }
   }
 }
