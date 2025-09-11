@@ -38,10 +38,9 @@ void ParamReading::update(float newValue) {
         total += newValue;
         ++count;
     }
+    consolidate();
 }
 
 float ParamReading::read() {
-    float response = consolidate();
-    reset(millis());
-    return response;
+    return consolidatedReading;
 }
