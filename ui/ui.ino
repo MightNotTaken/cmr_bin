@@ -15,6 +15,7 @@
 #include <clock.h>
 #include <mac.h>
 #include "furnace-ctrl.hpp"
+#include "OTA.hpp"
 
 #define MAIN_CALL_EVENT      "up"
 
@@ -27,7 +28,6 @@ void runDataRoutine();
 
 void setup() {
     Serial.begin(115200);
-
     database.begin();
     database.listDir();
     
@@ -47,6 +47,12 @@ void setup() {
     setupInterCom();
     setupUIUpdators();
     setupDataSourceTriggers();
+    if (!ota.beginAP("CMR-OTIS", "12345687", true)) {
+        Serial.println("Failed to start AP!");
+    } else {
+        Serial.print("AP IP: "); Serial.println(WiFi.softAPIP());
+        Serial.println("Open http://192.168.4.1/ to upload firmware (.bin)");
+    }
 }
 
 void loop() {
@@ -57,6 +63,7 @@ void loop() {
     Cellular::loop();
     dataSource.loop();
     runDataRoutine();
+    ota.loop();
 }
 
 void runDataRoutine() {
@@ -67,8 +74,8 @@ void runDataRoutine() {
             if (furnace->isActive()) {
                 JSON data("[]");
                 data.push_back(furnace->mac);
-                data.push_back(furnace->level);
-                data.push_back(furnace->temperature);
+                data.push_back(static_cast<uint32_t>(furnace->levelReading->read()));
+                data.push_back(static_cast<uint32_t>(furnace->temperatureReading->read()));
                 data.push_back(systemClock.getCurrentTime().epoch() - 330 * 60);
                 if (Cellular::internetConnected && Cellular::emit("cmr:data", data.toString())) {
                     Serial.println("data sent");

@@ -4,6 +4,9 @@
 Furnace::Furnace(int slaveID, String mac, String name, String material): slaveID(slaveID), mac(mac), name(name), material(material) {
     connected = false;
     lastUpdate = millis();
+    temperatureReading = new ParamReading(59000, 0.0, 3000.0);
+    levelReading = new ParamReading(59000, 300.0, 30000.0);
+    
 }
 
 void Furnace::update(int level, int temperature) {
@@ -12,6 +15,8 @@ void Furnace::update(int level, int temperature) {
     }
     this->level = level;
     this->temperature = temperature;
+    this->levelReading->update(static_cast<float>(level));
+    this->temperatureReading->update(static_cast<float>(temperature));
     lastUpdate = millis();
 }
 

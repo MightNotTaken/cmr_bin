@@ -6,7 +6,7 @@
 #include <inter-com.hpp>
 #include "furnace-ctrl.hpp"
 #include <database.h>
-
+#include "OTA.hpp"
 
 namespace Cellular {
     bool ready = false;
@@ -24,6 +24,7 @@ namespace Cellular {
             interCom.loop();
             FurnaceCtrl::loop();
             AsyncCore::run();
+            ota.loop();
         }
     }
 

@@ -3,6 +3,7 @@
 #include <map>
 #include <JSON.h>
 #include "sensor-configuration.h"
+#include "param-reading.hpp"
 
 
 #define FURNACE_DATABASE        "/furnace.json"
@@ -20,6 +21,9 @@ public:
     String name;
     uint32_t id;
     String material;
+
+    ParamReading* temperatureReading;
+    ParamReading* levelReading;
     Furnace(int slaveID, String mac, String name="", String material = "No Material");
     int getActiveConfigState();
     void update(int level, int temperature);
