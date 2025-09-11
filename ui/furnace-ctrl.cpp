@@ -5,7 +5,7 @@ Furnace::Furnace(int slaveID, String mac, String name, String material): slaveID
     connected = false;
     lastUpdate = millis();
     temperatureReading = new ParamReading(59000, 0.0, 3000.0);
-    levelReading = new ParamReading(59000, 300.0, 30000.0);
+    levelReading = new ParamReading(59000, 301.0, 30000.0);
     
 }
 

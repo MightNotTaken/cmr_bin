@@ -47,7 +47,7 @@ void setup() {
     setupInterCom();
     setupUIUpdators();
     setupDataSourceTriggers();
-    if (!ota.beginAP("CMR-OTIS", "12345687", true)) {
+    if (!ota.beginAP("CMR-OTIS", "OTIS@1234", true)) {
         Serial.println("Failed to start AP!");
     } else {
         Serial.print("AP IP: "); Serial.println(WiFi.softAPIP());
