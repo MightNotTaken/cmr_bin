@@ -141,6 +141,7 @@ void setupInterCom() {
             int level;
             int temperature;
             sscanf(data.c_str(), "%d,%d", &level, &temperature);
+            level += 10.00;
             FurnaceCtrl::updateFurnaceParams(i, level, temperature);
         });
         

@@ -69,7 +69,6 @@ void OTAProvisioner::_registerRoutes() {
     std::bind(&OTAProvisioner::_handleUpdate, this),         // called after upload completed
     std::bind(&OTAProvisioner::_handleUpload, this)          // handles the upload chunks
   );
-
   _server.onNotFound(std::bind(&OTAProvisioner::_handleNotFound, this));
 }
 

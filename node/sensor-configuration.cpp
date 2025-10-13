@@ -26,7 +26,6 @@ String SensorConfiguration_T::toString() {
     return config.toString();
 }
 
-
 bool SensorConfiguration_T::inRange(int level, int temperature) {
     if (this->type == RangeType::LEVEL) {
         return level >= min && level < max;

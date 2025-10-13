@@ -41,8 +41,8 @@ void setup() {
   interCom.on(SEN_CONF_EVENT, [](String data) {
     Device::addConfiguration(data);
     Serial.println("configuration added");
-
   });
+
   interCom.on(SEN_CONF_REM_EVENT, [](JSON rawData) {
     JSON data(rawData);
     Device::removeConfiguration(data[0].toString().toInt());
