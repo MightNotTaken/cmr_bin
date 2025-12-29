@@ -5,7 +5,7 @@ Furnace::Furnace(int slaveID, String mac, String name, String material): slaveID
     connected = false;
     lastUpdate = millis();
     temperatureReading = new ParamReading(61000, 0.0, 3000.0);
-    levelReading = new ParamReading(61000, 301.0, 30000.0);
+    levelReading = new ParamReading(61000, 0.0, 30000.0);
 }
 
 void Furnace::update(int level, int temperature) {
@@ -229,7 +229,7 @@ namespace FurnaceCtrl {
         auto it = list.find(mac);
         if (it == list.end()) {
             // Not found, create new Furnace and set name
-            Serial.printf("creating new furnace: %s with name: %s\n", mac.c_str(), name.c_str());
+            Serial.printf("creating new furnace: %s with name: %s slaveID: %d\n", mac.c_str(), name.c_str(), slaveID);
             list[mac] = new Furnace(slaveID, mac, name, ""); // You can set a default or pass a proper slaveID
             list[mac]->name = name;
             list[mac]->loadConfiguration();
@@ -260,6 +260,7 @@ namespace FurnaceCtrl {
     void removeFurnace(String mac) {
         auto it = list.find(mac);
         if (it != list.end()) {
+            Serial.printf("Furnace found to delete");
             if (it == current) {
                 current = list.erase(it); // erase returns next iterator
                 if (current == list.end() && !list.empty()) {
@@ -274,6 +275,7 @@ namespace FurnaceCtrl {
         if (list.empty()) {
             current = list.end();
         }
+        save();
     }
 
     Furnace* getNextFurnace() {
@@ -295,8 +297,8 @@ namespace FurnaceCtrl {
 
     Furnace* getActiveFurnace() {
         if (list.empty()) return nullptr;
-        
-        if (active == list.end()) {
+
+        if (!active->second) {
             active = list.begin();
         }
         

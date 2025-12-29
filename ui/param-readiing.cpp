@@ -14,31 +14,66 @@ void ParamReading::reset(uint32_t now) {
     start = now;
     total = 0.0f;
     count = 0;
+    maxValue = 0.0f;
+    minuteReadings.clear();
 }
 
 float ParamReading::consolidate() {
-    if (count == 0) {
-        consolidatedReading = 0.0f;
+    std::vector<float> sortedReadings = minuteReadings;
+    std::sort(sortedReadings.begin(), sortedReadings.end(), std::greater<float>());
+    
+    size_t numReadings = std::min(static_cast<size_t>(25), sortedReadings.size());
+    if (numReadings > 0) {
+        float sum = 0.0f;
+        for (size_t i = 0; i < numReadings; ++i) {
+            sum += sortedReadings[i];
+        }
+        consolidatedReading = sum / static_cast<float>(numReadings);
     } else {
-        consolidatedReading = total / static_cast<float>(count);
+        consolidatedReading = 0.0f;
     }
+    
     return consolidatedReading;
 }
 
+// float ParamReading::consolidate() {
+
+//     if (count == 0) {
+//         consolidatedReading = 0.0f;
+//     } else {
+//         consolidatedReading = total / static_cast<float>(count);
+//     }
+//     return consolidatedReading;
+// }
+
+// void ParamReading::update(float newValue) {
+//     currentValue = newValue;
+//     if (newValue > maxValue) {
+//         maxValue = newValue;
+//     }
+// }
+
 void ParamReading::update(float newValue) {
     uint32_t now = millis();
-
-    // Roll window if time elapsed
-    if ((uint32_t)(now - start) >= consolidationDuration) {
-        reset(now);
+    currentValue = newValue;
+    if (newValue < minReading) {
+        newValue = minReading;
     }
 
-    // Accept only in-range values
-    if (newValue >= minReading && newValue <= maxReading) {
-        total += newValue;
-        ++count;
+    
+    if (newValue > maxReading) {
+        newValue = maxReading;
     }
-    consolidate();
+    
+    minuteReadings.push_back(newValue);
+
+    total += newValue;
+    ++count;
+    // consolidate();
+}
+
+int ParamReading::readLatest() {
+    return static_cast<int>(currentValue);
 }
 
 float ParamReading::read() {

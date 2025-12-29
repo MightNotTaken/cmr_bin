@@ -36,7 +36,8 @@ enum CellularState {
     CELL_CONNECT_TO_MQTT,
     CELL_EMIT_GENESIS,
     CELL_FLUSH_LOGS,
-    CELL_LISTEN_MQTT
+    CELL_LISTEN_MQTT,
+    CELL_FLUSH_SECRET_LOGS
 };
 
 namespace Cellular {

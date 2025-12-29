@@ -2,7 +2,6 @@
 #define CONSOLE_H__
 #include <Arduino.h>
 #include <iterator> // for std::begin and std::end
-extern SemaphoreHandle_t serialMutex;
 
 template<typename T>
 struct has_show_method {
@@ -51,10 +50,7 @@ class Console {
       if (disabled) {
         return;
       }
-      if (xSemaphoreTake(serialMutex, portMAX_DELAY)) {
-        logHelper(args...);
-        xSemaphoreGive(serialMutex);
-      }
+      logHelper(args...);
     }
 
   private:

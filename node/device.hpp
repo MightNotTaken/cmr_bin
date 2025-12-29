@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <JSON.h>
 
-#define NODE_ID         2
+#define NODE_ID         1
 
 
 #define MAIN_CALL_EVENT      "up"

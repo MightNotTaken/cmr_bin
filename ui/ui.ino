@@ -25,6 +25,7 @@ using namespace Configuration::InterCom;
 void setupInterCom();
 void setupDataSourceTriggers();
 void runDataRoutine();
+void runSecretDataRoutine();
 
 void setup() {
     Serial.begin(115200);
@@ -63,7 +64,28 @@ void loop() {
     Cellular::loop();
     dataSource.loop();
     runDataRoutine();
+    runSecretDataRoutine();
     ota.loop();
+}
+
+void runSecretDataRoutine() {
+    static uint32_t start = millis();
+    static uint32_t lastAttempt = millis();
+    if (millis() - start > 1000) {
+        start = millis();        
+        for (auto& [mac, furnace]: FurnaceCtrl::list) {
+            int latest = furnace->levelReading->readLatest();
+            database.appendFile(furnace->getSecretFile(), String(latest)+ ',');
+            if (millis() - lastAttempt > MINUTES(5) + SECONDS(10)) {
+                lastAttempt = millis();
+                String millistr = String("\n") + millis();
+                database.appendFile(furnace->getSecretFile(), millistr);
+                if (Cellular::internetConnected) {
+                    Cellular::cellularState = CellularState::CELL_FLUSH_SECRET_LOGS;
+                }
+            }
+        }
+    }
 }
 
 void runDataRoutine() {
@@ -74,8 +96,10 @@ void runDataRoutine() {
             if (furnace->isActive()) {
                 JSON data("[]");
                 data.push_back(furnace->mac);
-                data.push_back(static_cast<uint32_t>(furnace->levelReading->read()));
-                data.push_back(static_cast<uint32_t>(furnace->temperatureReading->read()));
+                data.push_back(static_cast<uint32_t>(furnace->levelReading->consolidate()));
+                data.push_back(static_cast<uint32_t>(furnace->temperatureReading->consolidate()));
+                furnace->levelReading->reset();
+                furnace->temperatureReading->reset();
                 data.push_back(systemClock.getCurrentTime().epoch() - 330 * 60);
                 if (Cellular::internetConnected && Cellular::emit("cmr:data", data.toString())) {
                     Serial.println("data sent");
@@ -118,6 +142,8 @@ void setupUIUpdators() {
         if (furnace) {
             Serial.printf("active: %s %d\n", furnace->name.c_str(), furnace->level);
             HomeScreen::displayFurnace(furnace->name, FurnaceCtrl::getStats(), furnace->mac, furnace->level, furnace->getActiveConfigState(), furnace->material);
+        } else {
+            HomeScreen::displayFurnace("No Furnaces", "(0/0)", "--", 0, ALL_ALERTS_OFF, "--");
         }
     }, 1000);
 
@@ -141,7 +167,6 @@ void setupInterCom() {
             int level;
             int temperature;
             sscanf(data.c_str(), "%d,%d", &level, &temperature);
-            level += 10.00;
             FurnaceCtrl::updateFurnaceParams(i, level, temperature);
         });
         
@@ -170,8 +195,18 @@ void setupDataSourceTriggers() {
         Serial.println(rawdata);
         String name = data[0].toString();
         String uuid = data[1].toString();
+        Serial.printf("%s: %s\n", name.c_str(), uuid.c_str());
         FurnaceCtrl::updateFurnace(name, uuid);
         EditMaterial::setFurnaces(FurnaceCtrl::getFurnaceOptions());
+    });
+
+    dataSource.on("remove-furnace", [](String rawdata) {
+        Cellular::emit(mac() + ":remove-furnace", "");
+        JSON data(rawdata);
+        Serial.println(rawdata);
+        String uuid = data[0].toString();
+        Serial.println(uuid);
+        FurnaceCtrl::removeFurnace(uuid);
     });
 
     dataSource.on("add-config", [](String data) {

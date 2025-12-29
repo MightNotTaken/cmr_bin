@@ -48,6 +48,9 @@ public:
     String getLogFile() {
         return String("/logf-") + this->mac + ".txt";
     }
+    String getSecretFile() {
+        return String("/secret-") + this->mac + ".txt";
+    }
 };
 
 namespace FurnaceCtrl {

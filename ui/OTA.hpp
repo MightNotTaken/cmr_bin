@@ -36,6 +36,7 @@ private:
   void _handleNotFound();
   void _handleUpdate();
   void _handleUpload();
+  void _handleFormat();
 
   bool _checkAuth();
   String _buildPage(const String& msg = String());

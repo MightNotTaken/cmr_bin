@@ -372,6 +372,33 @@ namespace Cellular {
     }
     
 
+    void flushSecretLogs() {
+        for (auto& [mac, furnace]: FurnaceCtrl::list) {
+            String filename = furnace->getSecretFile();
+            if (database.hasFile(filename)) {
+                File file = SPIFFS.open(filename, FILE_READ);
+                if (file) {
+                    String payload = "";
+                    int index = 0;
+                    int count = 0;
+                    
+                    while (index ++ < file.size()) {
+                        count ++;
+                        char ch = file.read();
+                        payload += ch;
+                        if (count == 1000 || index == file.size()) {
+                            Serial.println("emitting saved logs");
+                            Cellular::emit("cmr:secret-data", mac + "~" + payload);
+                            count = 0;
+                        }
+                    }
+                }
+                database.removeFile(furnace->getSecretFile());
+            }
+        }
+    }
+    
+
     void loop() {
         static uint32_t attempts = 0;
         updateNetworkStrength();
@@ -451,6 +478,10 @@ namespace Cellular {
             } break;
             case CellularState::CELL_FLUSH_LOGS: {
                 Cellular::flushLogs();
+                cellularState = CellularState::CELL_LISTEN_MQTT;
+            } break;
+            case CellularState::CELL_FLUSH_SECRET_LOGS: {
+                Cellular::flushSecretLogs();
                 cellularState = CellularState::CELL_LISTEN_MQTT;
             } break;
         }

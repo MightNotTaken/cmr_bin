@@ -8,17 +8,15 @@
 #include <database.h>
 #include "alert-system.hpp"
 #include <JSON.h>
+#include <console.h>
 
 using namespace Intervals;
 using namespace Timeouts;
 
 void setup() {
   Serial.begin(115200);
-
-
-
   alertSystem.begin();
-  Serial2.begin(9600, SERIAL_8N1, 15, 16);
+  Serial2.begin(9600, SERIAL_8N1, 16, 15);
   database.begin();
   LevelSensor::begin();
   LevelSensor::onDistanceChange([](int level) {
@@ -56,6 +54,11 @@ void loop() {
   LevelSensor::loop();
   Device::loop();  
   if (Serial.available()) {
-    ESP.restart();
+    String data = Serial.readString();
+    data.trim();
+    if (data == "reset") {
+      Serial.println(WiFi.macAddress());
+      ESP.restart();
+    }
   }
 }

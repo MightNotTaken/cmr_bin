@@ -1,6 +1,5 @@
 #include "console.h"
 
-SemaphoreHandle_t serialMutex;
 Console console;
 
 bool Console::isJson(const String& str) {

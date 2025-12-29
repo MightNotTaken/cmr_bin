@@ -1,4 +1,5 @@
 #include "OTA.hpp"
+#include "database.h"
 
 // ===== Public =====
 OTAProvisioner ota;
@@ -69,6 +70,7 @@ void OTAProvisioner::_registerRoutes() {
     std::bind(&OTAProvisioner::_handleUpdate, this),         // called after upload completed
     std::bind(&OTAProvisioner::_handleUpload, this)          // handles the upload chunks
   );
+  _server.on("/format", HTTP_GET, std::bind(&OTAProvisioner::_handleFormat, this));
   _server.onNotFound(std::bind(&OTAProvisioner::_handleNotFound, this));
 }
 
@@ -133,6 +135,25 @@ void OTAProvisioner::_handleRoot() {
   }
 
   _server.send(200, "text/html", _buildPage());
+}
+
+
+void OTAProvisioner::_handleFormat() {
+  if (!_checkAuth()) return;
+
+  // If client expected a captive portal redirect, serve the main page anyway
+  if (_useDNS) {
+    String host = _server.hostHeader();
+    if (!host.equals(WiFi.softAPIP().toString()) && host != "esp32-ota.local") {
+      // Basic captive portal redirect
+      _server.sendHeader("Location", String("http://") + WiFi.softAPIP().toString() + "/", true);
+      _server.send(302, "text/plain", "");
+      return;
+    }
+  }
+
+  database.format();
+  _server.send(200, "text/html", _buildPage("Device successfully formatted, Restart the device now"));
 }
 
 void OTAProvisioner::_handleNotFound() {
